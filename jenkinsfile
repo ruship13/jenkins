@@ -41,7 +41,7 @@ pipeline {
                 )]) {
                     deploy adapters: [
                         tomcat9(
-                            credentialsId: 'fa558226-4df3-4a75-bd94-099b4b30888c',
+                            credentialsId: 'a30783f8-4714-4e0c-9494-52ca4e23c2da',
                             path: '',
                             url: 'http://localhost:8088'
                         )
