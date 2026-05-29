@@ -5,6 +5,11 @@ pipeline {
         maven 'mymaven'
     }
 
+    environment {
+        TOMCAT_HOME = '/opt/tomcat'
+        WAR_NAME = 'web.war'
+    }
+
     stages {
 
         stage('Checkout Code') {
@@ -26,9 +31,51 @@ pipeline {
             }
         }
 
-        stage('Package Code') {
+        stage('Build WAR') {
             steps {
-                sh 'mvn package'
+                sh 'mvn clean package'
+            }
+        }
+
+        stage('Stop Tomcat') {
+            steps {
+                sh '''
+                sudo $TOMCAT_HOME/bin/shutdown.sh || true
+                sleep 10
+                '''
+            }
+        }
+
+        stage('Delete Old WAR') {
+            steps {
+                sh '''
+                sudo rm -rf $TOMCAT_HOME/webapps/web*
+                '''
+            }
+        }
+
+        stage('Deploy New WAR') {
+            steps {
+                sh '''
+                sudo cp target/*.war $TOMCAT_HOME/webapps/$WAR_NAME
+                '''
+            }
+        }
+
+        stage('Start Tomcat') {
+            steps {
+                sh '''
+                sudo $TOMCAT_HOME/bin/startup.sh
+                sleep 15
+                '''
+            }
+        }
+
+        stage('Verify Deployment') {
+            steps {
+                sh '''
+                curl -I http://localhost:8088
+                '''
             }
         }
     }
