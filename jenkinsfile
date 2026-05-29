@@ -31,5 +31,28 @@ pipeline {
                 sh 'mvn package'
             }
         }
+
+        stage('Deploy to Tomcat') {
+            steps {
+                deploy adapters: [
+                    tomcat9(
+                        credentialsId: 'fa558226-4df3-4a75-bd94-099b4b30888c',
+                        path: '',
+                        url: 'http://<your-tomcat-ip>:8080'
+                    )
+                ],
+                contextPath: 'webapp',
+                war: 'target/*.war'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Deployment Successful!'
+        }
+        failure {
+            echo 'Build or Deployment Failed!'
+        }
     }
 }
