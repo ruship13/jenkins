@@ -5,11 +5,6 @@ pipeline {
         maven 'mymaven'
     }
 
-    environment {
-        TOMCAT_PATH = '/opt/tomcat/webapps'
-        WAR_NAME = 'demo-0.0.1-SNAPSHOT.war'
-    }
-
     stages {
 
         stage('Checkout Code') {
@@ -19,57 +14,21 @@ pipeline {
             }
         }
 
-        stage('Clean Project') {
+        stage('Build & Package') {
             steps {
-                sh 'mvn clean'
+                sh 'mvn clean install'
             }
         }
 
-        stage('Compile Code') {
-            steps {
-                sh 'mvn compile'
-            }
-        }
+        
+    }
 
-        stage('Test Code') {
-            steps {
-                sh 'mvn test'
-            }
+    post {
+        success {
+            echo 'Deployment Successful!'
         }
-
-        stage('Package Code') {
-            steps {
-                sh 'mvn package'
-            }
-        }
-
-        stage('Stop Tomcat') {
-            steps {
-                sh 'sudo systemctl stop tomcat'
-            }
-        }
-
-        stage('Delete Old WAR') {
-            steps {
-                sh '''
-                rm -rf ${TOMCAT_PATH}/demo-0.0.1-SNAPSHOT
-                rm -f ${TOMCAT_PATH}/${WAR_NAME}
-                '''
-            }
-        }
-
-        stage('Deploy New WAR') {
-            steps {
-                sh '''
-                cp target/${WAR_NAME} ${TOMCAT_PATH}/
-                '''
-            }
-        }
-
-        stage('Start Tomcat') {
-            steps {
-                sh 'sudo systemctl start tomcat'
-            }
+        failure {
+            echo 'Build or Deployment Failed!'
         }
     }
 }
