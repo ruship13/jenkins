@@ -5,6 +5,11 @@ pipeline {
         maven 'mymaven'
     }
 
+    environment {
+        TOMCAT_PATH = 'C:\\Program Files\\Apache Software Foundation\\Tomcat 9.0_Tomcat9.0\\webapps'
+        WAR_NAME = 'demo-0.0.1-SNAPSHOT.war'
+    }
+
     stages {
 
         stage('Checkout Code') {
@@ -14,45 +19,81 @@ pipeline {
             }
         }
 
+        stage('Clean Project') {
+            steps {
+                bat 'mvn clean'
+            }
+        }
+
         stage('Compile Code') {
             steps {
-                sh 'mvn compile'
+                bat 'mvn compile'
             }
         }
 
         stage('Test Code') {
             steps {
-                sh 'mvn test'
+                bat 'mvn test'
             }
         }
 
         stage('Package Code') {
             steps {
-                sh 'mvn package'
+                bat 'mvn package'
             }
         }
 
-        stage('Deploy to Tomcat') {
+        stage('Stop Tomcat') {
             steps {
-                deploy adapters: [
-                    tomcat9(
-                        credentialsId: 'tomcat-creds',
-                        path: '',
-                        url: 'http://localhost:8088'
-                    )
-                ],
-                contextPath: 'webapp',
-                war: 'target/*.war'
+                bat '''
+                net stop Tomcat9
+                '''
+            }
+        }
+
+        stage('Delete Old WAR') {
+            steps {
+                bat """
+                if exist "%TOMCAT_PATH%\\demo-0.0.1-SNAPSHOT" rmdir /s /q "%TOMCAT_PATH%\\demo-0.0.1-SNAPSHOT"
+
+                if exist "%TOMCAT_PATH%\\%WAR_NAME%" del /f /q "%TOMCAT_PATH%\\%WAR_NAME%"
+                """
+            }
+        }
+
+        stage('Deploy New WAR') {
+            steps {
+                bat """
+                copy target\\%WAR_NAME% "%TOMCAT_PATH%"
+                """
+            }
+        }
+
+        stage('Start Tomcat') {
+            steps {
+                bat '''
+                net start Tomcat9
+                '''
+            }
+        }
+
+        stage('Verify Deployment') {
+            steps {
+                bat '''
+                timeout /t 15
+                curl http://localhost:8080/demo-0.0.1-SNAPSHOT
+                '''
             }
         }
     }
 
     post {
         success {
-            echo 'Deployment Successful!'
+            echo 'Application deployed successfully'
         }
+
         failure {
-            echo 'Build or Deployment Failed!'
+            echo 'Deployment failed'
         }
     }
 }
