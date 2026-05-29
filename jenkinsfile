@@ -1,58 +1,13 @@
-pipeline {
-    agent any
-
-    tools {
-        maven 'mymaven'
-    }
-
-    stages {
-
-        stage('Checkout Code') {
-            steps {
-                git branch: 'main',
-                    url: 'https://github.com/ruship13/jenkins.git'
-            }
-        }
-
-        stage('Compile Code') {
-            steps {
-                sh 'mvn compile'
-            }
-        }
-
-        stage('Test Code') {
-            steps {
-                sh 'mvn test'
-            }
-        }
-
-        stage('Package Code') {
-            steps {
-                sh 'mvn package'
-            }
-        }
-
-        stage('Deploy to Tomcat') {
-            steps {
-                deploy adapters: [
-                    tomcat9(
-                        credentialsId: 'fa558226-4df3-4a75-bd94-099b4b30888c',
-                        path: '',
-                        url: 'http://<your-tomcat-ip>:8080'
-                    )
-                ],
-                contextPath: 'webapp',
-                war: 'target/*.war'
-            }
-        }
-    }
-
-    post {
-        success {
-            echo 'Deployment Successful!'
-        }
-        failure {
-            echo 'Build or Deployment Failed!'
-        }
+stage('Deploy to Tomcat') {
+    steps {
+        deploy adapters: [
+            tomcat9(
+                credentialsId: 'fa558226-4df3-4a75-bd94-099b4b30888c',
+                path: '',
+                url: 'http://localhost:8088'   // ← put your ACTUAL Tomcat IP here
+            )
+        ],
+        contextPath: 'webapp',
+        war: 'target/*.war'
     }
 }
