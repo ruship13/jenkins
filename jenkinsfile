@@ -6,7 +6,7 @@ pipeline {
     }
 
     environment {
-        TOMCAT_PATH = 'C:\\Program Files\\Apache Software Foundation\\Tomcat 9.0_Tomcat9.0\\webapps'
+        TOMCAT_PATH = '/opt/tomcat/webapps'
         WAR_NAME = 'demo-0.0.1-SNAPSHOT.war'
     }
 
@@ -21,79 +21,55 @@ pipeline {
 
         stage('Clean Project') {
             steps {
-                bat 'mvn clean'
+                sh 'mvn clean'
             }
         }
 
         stage('Compile Code') {
             steps {
-                bat 'mvn compile'
+                sh 'mvn compile'
             }
         }
 
         stage('Test Code') {
             steps {
-                bat 'mvn test'
+                sh 'mvn test'
             }
         }
 
         stage('Package Code') {
             steps {
-                bat 'mvn package'
+                sh 'mvn package'
             }
         }
 
         stage('Stop Tomcat') {
             steps {
-                bat '''
-                net stop Tomcat9
-                '''
+                sh 'sudo systemctl stop tomcat'
             }
         }
 
         stage('Delete Old WAR') {
             steps {
-                bat """
-                if exist "%TOMCAT_PATH%\\demo-0.0.1-SNAPSHOT" rmdir /s /q "%TOMCAT_PATH%\\demo-0.0.1-SNAPSHOT"
-
-                if exist "%TOMCAT_PATH%\\%WAR_NAME%" del /f /q "%TOMCAT_PATH%\\%WAR_NAME%"
-                """
+                sh '''
+                rm -rf ${TOMCAT_PATH}/demo-0.0.1-SNAPSHOT
+                rm -f ${TOMCAT_PATH}/${WAR_NAME}
+                '''
             }
         }
 
         stage('Deploy New WAR') {
             steps {
-                bat """
-                copy target\\%WAR_NAME% "%TOMCAT_PATH%"
-                """
+                sh '''
+                cp target/${WAR_NAME} ${TOMCAT_PATH}/
+                '''
             }
         }
 
         stage('Start Tomcat') {
             steps {
-                bat '''
-                net start Tomcat9
-                '''
+                sh 'sudo systemctl start tomcat'
             }
-        }
-
-        stage('Verify Deployment') {
-            steps {
-                bat '''
-                timeout /t 15
-                curl http://localhost:8088/demo-0.0.1-SNAPSHOT
-                '''
-            }
-        }
-    }
-
-    post {
-        success {
-            echo 'Application deployed successfully'
-        }
-
-        failure {
-            echo 'Deployment failed'
         }
     }
 }
