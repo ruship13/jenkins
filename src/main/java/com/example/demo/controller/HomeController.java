@@ -12,7 +12,7 @@ public class HomeController {
     @GetMapping("/")
     public String home(Model model) {
 
-        model.addAttribute("message", "Hey buddys hi");
+        model.addAttribute("message", "Hey buddyshi");
 
         return "index";
     }
