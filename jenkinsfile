@@ -34,21 +34,15 @@ pipeline {
 
         stage('Deploy to Tomcat') {
             steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'fa558226-4df3-4a75-bd94-099b4b30888c',
-                    usernameVariable: 'root',
-                    passwordVariable: 'root'
-                )]) {
-                    deploy adapters: [
-                        tomcat9(
-                            credentialsId: 'tomcat-creds',
-                            path: '',
-                            url: 'http://localhost:8088'
-                        )
-                    ],
-                    contextPath: 'webapp',
-                    war: 'target/*.war'
-                }
+                deploy adapters: [
+                    tomcat9(
+                        credentialsId: 'tomcat-creds',
+                        path: '',
+                        url: 'http://localhost:8088'
+                    )
+                ],
+                contextPath: 'webapp',
+                war: 'target/*.war'
             }
         }
     }
