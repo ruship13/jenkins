@@ -5,11 +5,6 @@ pipeline {
         maven 'mymaven'
     }
 
-    environment {
-        TOMCAT_HOME = "C:\\Program Files\\Apache Software Foundation\\Tomcat 9.0_Tomcat9.0"
-    WAR_FILE = "demo-0.0.1-SNAPSHOT.war"
-    }
-
     stages {
 
         stage('Checkout Code') {
@@ -19,42 +14,21 @@ pipeline {
             }
         }
 
-        stage('Build WAR') {
+        stage('Compile Code') {
             steps {
-                bat 'mvn clean package'
+                sh 'mvn compile'
             }
         }
 
-        stage('Stop Tomcat') {
+        stage('Test Code') {
             steps {
-                bat '''
-                "%TOMCAT_HOME%\\bin\\shutdown.bat"
-                '''
+                sh 'mvn test'
             }
         }
 
-        stage('Delete Old Deployment') {
+        stage('Package Code') {
             steps {
-                bat '''
-                rmdir /s /q "%TOMCAT_HOME%\\webapps\\demo-0.0.1-SNAPSHOT" 2>nul
-                del /f /q "%TOMCAT_HOME%\\webapps\\%WAR_FILE%" 2>nul
-                '''
-            }
-        }
-
-        stage('Deploy New WAR') {
-            steps {
-                bat '''
-                copy target\\%WAR_FILE% "%TOMCAT_HOME%\\webapps\\"
-                '''
-            }
-        }
-
-        stage('Start Tomcat') {
-            steps {
-                bat '''
-                "%TOMCAT_HOME%\\bin\\startup.bat"
-                '''
+                sh 'mvn package'
             }
         }
     }
