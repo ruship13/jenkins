@@ -25,8 +25,8 @@ pipeline {
             tomcat9(
                 credentialsId: 'TomcatCreds',
                 path: '',
-                //url: 'http://192.168.11.76:8088/'
-               url: 'http://15.206.211.214:8080/'
+                url: 'http://192.168.11.76:8088/'
+               //url: 'http://15.206.211.214:8080/'
             )
         ],
         contextPath: null,
