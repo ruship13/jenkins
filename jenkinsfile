@@ -24,7 +24,7 @@ pipeline {
         deploy adapters: [
             tomcat9(
                 credentialsId: 'TomcatCreds',
-                path: 'webapp',
+                path: '',
                 url: 'http://192.168.11.76:8088/'
             )
         ],
